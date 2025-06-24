@@ -1,0 +1,50 @@
+b1 {
+  color: white;
+}
+
+b2 {
+  color: white;
+  text-align: center;
+}
+
+ul {
+  width: 300px;
+  border: 15px solid blueviolet;
+  padding: 50px;
+  margin: 20px;
+}
+
+li{
+    padding: 10px;
+}
+
+html {
+background-color: black;
+}
+
+b2{
+color: white;
+}
+
+h1{
+    color: white;
+    font-size: xx-large;
+    text-align: center;
+    padding: 50px;
+}
+
+h2{
+    color: white;
+}
+
+h3{
+    color: white;
+}
+
+h4{
+    color: white;
+}
+b {
+    text-align: right;
+    color: white;
+}
