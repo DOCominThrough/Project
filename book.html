@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Details</title>
+  <style>
+    html {background-color: ghostwhite;}
+  </style>
+</head>
+<body>
+  <h1>Book Details</h1>
+  <div id="Details">Loading...</div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const bookId = params.get('id');
+
+    fetch(`https://www.googleapis.com/books/v1/volumes/${bookId}`)
+      .then(res => res.json())
+      .then(book => {
+        const info = book.volumeInfo;
+        document.getElementById('Details').innerHTML = `
+          <h2>${info.title}</h2>
+          <p><strong>Created By:</strong> ${info.authors?.join(', ') || 'N/A'}</p>
+          <p><strong>Release Date:</strong> ${info.publishedDate || 'N/A'}</p>
+          <p><strong>Overview:</strong> ${info.description || 'No description available.'}</p>
+          <img src="${info.imageLinks?.thumbnail || ''}" alt="Book cover">
+        `;
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bookshelf</title>
+  <style>
+    html {background-color: ghostwhite;}
+    body { font-family: 'Times New Roman', Times, serif; margin: 20px; }
+    .shelf { display: flex; flex-wrap: wrap; gap: 20px; }
+    .book { border: 1px solid #ccc; padding: 10px; width: 180px; text-align: center; }
+    img { max-width: 100px; height: auto; }
+    ul { width: 300px; border: 15px solid black; padding: 50px; margin: 20px;}
+    li{ padding: 10px;}
+  </style>
+</head>
+<body>
+
+        <h1>Table of Context</h1>
+    <b1>
+  <ul>
+    <li><a href="Search.html">Search Page</a></li>
+    
+  </ul>
+
+<h1>Shelf</h1>
+<div class="shelf" id="shelf"></div>
+
+<script>
+  const userId = '109928396846948382199'; 
+  const shelfId = '0'; 
+
+  const apiURL = `https://www.googleapis.com/books/v1/users/${userId}/bookshelves/${shelfId}/volumes`;
+
+  fetch(apiURL)
+    .then(res => res.json())
+    .then(data => {
+      const books = data.items || [];
+      const container = document.getElementById("shelf");
+      books.forEach(book => {
+        const info = book.volumeInfo;
+        const thumbnail = info.imageLinks?.thumbnail || 'https://via.placeholder.com/100x150?text=No+Cover';
+        const div = document.createElement("div");
+        div.className = "book";
+        div.innerHTML = `
+          <img src="${thumbnail}" alt="Cover" />
+          <h4><a href="book.html?id=${book.id}">${info.title}</a></h4>
+        `;
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error("Error fetching shelf:", err);
+      document.getElementById("shelf").textContent = "Failed to load shelf.";
+    });
+</script>
+
+</body>
+</html>
