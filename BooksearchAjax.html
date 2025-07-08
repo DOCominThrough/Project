@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Books Search</title>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    html {background-color: gold;}
+    body { font-family: 'Times New Roman', Times, serif; margin: 30px; }
+    #results { margin-top: 20px; border: 15px solid black }
+    .book { margin-bottom: 15px; }
+    .pagination button {
+      margin: 3px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      background: #f8f8f8;
+      cursor: pointer;
+    }
+    .pagination .active {
+      background: #007BFF;
+      color: black;
+      font-weight: bold;
+    }
+    ul { width: 300px; 
+        border: 15px solid black; 
+        padding: 50px; 
+        margin: 20px;}
+    li{ padding: 10px;}
+  </style>
+</head>
+<body>
+    <h1>Table of Context</h1>
+    <b1>
+  <ul>
+    <li><a href="HomePage.html">Home Page</a></li>
+    
+  </ul>
+    <h2>Book Search using Ajax</h2>
+  <input type="text" id="searchTerm" placeholder="Enter term">
+  <button id="searchBtn">Search</button>
+
+  <div id="results"></div>
+  <div class="pagination" id="pagination"></div>
+
+  <script>
+    const pagenum = 10;
+    const max = 50;
+
+    let currentSearch = "";
+    let totalResults = 0;
+
+    function search(page = 1) {
+      const startIndex = (page - 1) * pagenum;
+      $("#results").html("Searching...");
+
+      $.ajax({
+        url: "https://www.googleapis.com/books/v1/volumes",
+        method: "GET",
+        data: {
+          q: currentSearch,
+          startIndex: startIndex,
+          maxResults: pagenum,
+        },
+        success: function (data) {
+          totalResults = Math.min(data.totalItems, max);
+          Books(data.items || []);
+          dPagination(page);
+        },
+        error: function () {
+          $("#results").html("Error");
+        }
+      });
+    }
+
+    function Books(books) {
+      let html = "";
+      if (books.length === 0) {
+        html = "<p>Nothing Found.</p>";
+      } else {
+        books.forEach(book => {
+          const title = book.volumeInfo.title || "Title Not found";
+          const authors = book.volumeInfo.authors ? book.volumeInfo.authors.join(", ") : "No Author Found";
+          html += `
+            <div class="book">
+              <strong>${title}</strong><br>
+              <em>${authors}</em>
+            </div>
+          `;
+        });
+      }
+      $("#results").html(html);
+    }
+
+    function dPagination(currentPage) {
+      const pageCount = Math.ceil(totalResults / pagenum);
+      let paginationHTML = "";
+
+      for (let i = 1; i <= pageCount; i++) {
+        paginationHTML += `<button class="${i === currentPage ? "active" : ""}" data-page="${i}">${i}</button>`;
+      }
+
+      $("#pagination").html(paginationHTML);
+    }
+    $("#searchBtn").on("click", function () {
+      const term = $("#searchTerm").val().trim();
+      if (term) {
+        currentSearch = term;
+        search(1);
+      }
+    });
+    $("#pagination").on("click", "button", function () {
+      const page = parseInt($(this).attr("data-page"));
+      search(page);
+    });
+  </script>
+
+   <h1>Personal Bookshelf</h1>
+  <div id="book-list"></div>
+
+  <script>
+    const userId = '109928396846948382199';
+    const shelfId = '0';
+
+    $.ajax({
+      url: `https://www.googleapis.com/books/v1/users/${userId}/bookshelves/${shelfId}/volumes`,
+      method: 'GET',
+      success: function(response) {
+        const books = response.items;
+        let output = '<ul>';
+
+        if (books && books.length) {
+          books.forEach(book => {
+            const title = book.volumeInfo.title;
+            const authors = book.volumeInfo.authors?.join(', ') || 'Author not found';
+            const thumbnail = book.volumeInfo.imageLinks?.thumbnail || '';
+
+            output += `<li>
+              <strong>${title}</strong> Made by ${authors}<br>
+              <img src="${thumbnail}" alt="${title}" />
+            </li>`;
+          });
+        } 
+
+        output += '</ul>';
+        $('#book-list').html(output);
+      },
+      error: function(xhr) {
+        $('#book-list').html('<p>Error: ' + xhr.responseText + '</p>');
+      }
+    });
+  </script>
+</body>
+</html>
