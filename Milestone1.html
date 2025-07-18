@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Viewer</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    section {
+      background: white;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    .book {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      cursor: pointer;
+      transition: 0.2s ease-in-out;
+    }
+    .book:hover {
+      background-color: #eaf3ff;
+      transform: scale(1.01);
+    }
+    img {
+      max-width: 100px;
+      display: block;
+    }
+    #book-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1em;
+    }
+    #details {
+      margin-top: 2em;
+      padding: 1em;
+      background: #fff;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+    <h4>Table of Contents for Individual Project Milestone</h4>
+<b3>
+  <ul>
+    <li><a href="HomePage.html">HomePage</a></li>
+  </ul>
+</b3>
+
+<h1>Data Viewer</h1>
+
+<section id="openlibrary">
+  <h2>OpenLibrary</h2>
+</section>
+
+<section id="googlebooks">
+  <h2>Google Books Details</h2>
+</section>
+
+<section id="itebooks">
+  <h2>IT eBooks List</h2>
+</section>
+
+<section>
+  <h2>Interactive OpenLibrary Search</h2>
+  <div id="book-list"></div>
+  <div id="details"></div>
+</section>
+
+<script>
+  fetch('openlibrary-search.json')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('openlibrary');
+      data.docs.slice(0, 5).forEach(book => {
+        container.innerHTML += `
+          <div class="book">
+            <strong>Name:</strong> ${book.title}<br>
+            <strong>Created by:</strong> ${book.author_name?.join(', ') || 'Unknown'}<br>
+            <strong>Released by:</strong> ${book.publisher?.join(', ') || 'N/A'}<br>
+            <strong>Release Date:</strong> ${book.first_publish_year || 'N/A'}
+          </div>
+        `;
+      });
+    });
+
+  fetch('google-books-book.json')
+    .then(res => res.json())
+    .then(data => {
+      const book = data.volumeInfo;
+      const container = document.getElementById('googlebooks');
+      container.innerHTML += `
+        <div class="book">
+          <img src="${book.imageLinks?.thumbnail || ''}" alt="Cover"><br>
+          <strong>Name:</strong> ${book.title}<br>
+          <strong>Subtitle:</strong> ${book.subtitle || ''}<br>
+          <strong>Created By:</strong> ${book.authors?.join(', ') || 'Unknown'}<br>
+          <strong>Released for:</strong> ${book.publisher}<br>
+          <strong>Released Date:</strong> ${book.publishedDate}<br>
+          <strong>Pages:</strong> ${book.pageCount}<br>
+          <strong>Description:</strong> ${book.description?.substring(0, 200) || ''}...
+        </div>
+      `;
+    });
+
+  fetch('it-ebooks-search.json')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('itebooks');
+      data.Books.slice(0, 5).forEach(book => {
+        container.innerHTML += `
+          <div class="book">
+            <img src="${book.Image}" alt="Cover"><br>
+            <strong>Name:</strong> ${book.Title}<br>
+            <strong>Subtitle:</strong> ${book.SubTitle || ''}<br>
+            <strong>Description:</strong> ${book.Description?.substring(0, 200) || ''}...<br>
+            <strong>ISBN:</strong> ${book.isbn}
+          </div>
+        `;
+      });
+    });
+
+  async function loadInteractiveBooks() {
+    const searchRes = await fetch('openlibrary-search.json');
+    const bookRes = await fetch('openlibrary-book.json');
+    const searchData = await searchRes.json();
+    const bookData = await bookRes.json();
+    displayBooks(searchData.docs, bookData);
+  }
+
+  function displayBooks(books, bookDetails) {
+    const container = document.getElementById('book-list');
+    books.forEach(book => {
+      const div = document.createElement('div');
+      div.className = 'book';
+      div.innerHTML = `
+        <strong>${book.title}</strong><br>
+        <em>${book.author_name ? book.author_name.join(', ') : 'Unknown'}</em><br>
+        <small>${book.first_publish_year || 'N/A'}</small>
+      `;
+      div.onclick = () => showDetails(book, bookDetails);
+      container.appendChild(div);
+    });
+  }
+
+  function showDetails(book, bookDetails) {
+    const details = document.getElementById('details');
+    const isbn = book.isbn ? book.isbn.find(i => bookDetails["ISBN:" + i]) : null;
+    const full = isbn ? bookDetails["ISBN:" + isbn] : null;
+
+    if (!full) {
+      details.innerHTML = `<h3>${book.title}</h3><p>No additional details available.</p>`;
+      return;
+    }
+
+    details.innerHTML = `
+      <h3>${full.title}</h3>
+      <img src="${full.cover?.medium || ''}" alt="Cover">
+      <p><strong>Created by:</strong> ${full.authors.map(a => a.name).join(', ')}</p>
+      <p><strong>Released Date:</strong> ${full.publish_date}</p>
+      <p><strong>Release By:</strong> ${full.publishers.map(p => p.name).join(', ')}</p>
+      <p><strong>Subtitle:</strong> ${full.subtitle}</p>
+      <p><strong>Pages:</strong> ${full.pagination}</p>
+      <p><strong>Table of Contents:</strong></p>
+      <ul>${full.table_of_contents.map(c => `<li>${c.title}</li>`).join('')}</ul>
+      <p><a href="${full.url}" target="_blank">View on OpenLibrary</a></p>
+    `;
+  }
+
+  loadInteractiveBooks();
+</script>
+
+</body>
+</html>
+
